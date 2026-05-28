@@ -222,8 +222,15 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
     onBack()
   }
 
-  const handleScreenTap = () => {
+  const handleScreenTap = (e: React.MouseEvent) => {
+    // Only toggle if clicking on the background/text area, not on buttons
     if (isEditing || showSettings) return
+    
+    // Check if click was on a button or interactive element
+    const target = e.target as HTMLElement
+    if (target.closest('button') || target.closest('input') || target.closest('select') || target.closest('textarea')) {
+      return
+    }
     
     // Toggle play/pause
     setIsPlaying(!isPlaying)
