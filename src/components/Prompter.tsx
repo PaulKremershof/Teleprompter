@@ -141,11 +141,13 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
       <div
         ref={scrollContainerRef}
         className="w-full h-full overflow-y-auto no-scrollbar"
-        style={{
-          transform: `scale(${mirrorHorizontal ? -1 : 1}, ${mirrorVertical ? -1 : 1})`,
-        }}
       >
-        <div className="min-h-full flex items-center justify-center px-4 md:px-8 py-32">
+        <div 
+          className="min-h-full flex items-center justify-center px-4 md:px-8 py-32"
+          style={{
+            transform: `scale(${mirrorHorizontal ? -1 : 1}, ${mirrorVertical ? -1 : 1})`,
+          }}
+        >
           {isEditing ? (
             <textarea
               value={editedContent}
@@ -156,7 +158,6 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
                 color: textColor,
                 fontFamily,
                 lineHeight: '1.6',
-                transform: `scale(${mirrorHorizontal ? -1 : 1}, ${mirrorVertical ? -1 : 1})`,
               }}
               autoFocus
             />
@@ -168,7 +169,6 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
                 color: textColor,
                 fontFamily,
                 lineHeight: '1.6',
-                transform: `scale(${mirrorHorizontal ? -1 : 1}, ${mirrorVertical ? -1 : 1})`,
               }}
             >
               {editedContent}
