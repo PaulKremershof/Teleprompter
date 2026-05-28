@@ -27,7 +27,8 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
   const [backgroundColor, setBackgroundColor] = useState(script.backgroundColor)
   const [textColor, setTextColor] = useState(script.textColor)
   const [fontFamily, setFontFamily] = useState(script.fontFamily)
-  const [mirrored, setMirrored] = useState(script.mirrored)
+  const [mirrorHorizontal, setMirrorHorizontal] = useState(script.mirrorHorizontal)
+  const [mirrorVertical, setMirrorVertical] = useState(script.mirrorVertical)
   const [isEditing, setIsEditing] = useState(false)
   const [editedContent, setEditedContent] = useState(script.content)
 
@@ -101,7 +102,8 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
       backgroundColor,
       textColor,
       fontFamily,
-      mirrored,
+      mirrorHorizontal,
+      mirrorVertical,
       updatedAt: Date.now(),
     }
     onSave(updatedScript)
@@ -140,7 +142,7 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
         ref={scrollContainerRef}
         className="w-full h-full overflow-y-auto no-scrollbar"
         style={{
-          transform: mirrored ? 'scaleX(-1)' : 'none',
+          transform: `scale(${mirrorHorizontal ? -1 : 1}, ${mirrorVertical ? -1 : 1})`,
         }}
       >
         <div className="min-h-full flex items-center justify-center px-4 md:px-8 py-32">
@@ -154,7 +156,7 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
                 color: textColor,
                 fontFamily,
                 lineHeight: '1.6',
-                transform: mirrored ? 'scaleX(-1)' : 'none',
+                transform: `scale(${mirrorHorizontal ? -1 : 1}, ${mirrorVertical ? -1 : 1})`,
               }}
               autoFocus
             />
@@ -166,7 +168,7 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
                 color: textColor,
                 fontFamily,
                 lineHeight: '1.6',
-                transform: mirrored ? 'scaleX(-1)' : 'none',
+                transform: `scale(${mirrorHorizontal ? -1 : 1}, ${mirrorVertical ? -1 : 1})`,
               }}
             >
               {editedContent}
@@ -317,16 +319,32 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="text-sm text-gray-400">Mirror Mode</label>
+                <label className="text-sm text-gray-400">Horizontal spiegeln</label>
                 <button
-                  onClick={() => setMirrored(!mirrored)}
+                  onClick={() => setMirrorHorizontal(!mirrorHorizontal)}
                   className={`relative w-14 h-8 rounded-full transition-colors ${
-                    mirrored ? 'bg-blue-600' : 'bg-gray-600'
+                    mirrorHorizontal ? 'bg-blue-600' : 'bg-gray-600'
                   }`}
                 >
                   <div
                     className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                      mirrored ? 'translate-x-6' : ''
+                      mirrorHorizontal ? 'translate-x-6' : ''
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="text-sm text-gray-400">Vertikal spiegeln</label>
+                <button
+                  onClick={() => setMirrorVertical(!mirrorVertical)}
+                  className={`relative w-14 h-8 rounded-full transition-colors ${
+                    mirrorVertical ? 'bg-blue-600' : 'bg-gray-600'
+                  }`}
+                >
+                  <div
+                    className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${
+                      mirrorVertical ? 'translate-x-6' : ''
                     }`}
                   />
                 </button>

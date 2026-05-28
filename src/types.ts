@@ -9,7 +9,8 @@ export interface Script {
   backgroundColor: string
   textColor: string
   fontFamily: string
-  mirrored: boolean
+  mirrorHorizontal: boolean
+  mirrorVertical: boolean
 }
 
 export interface PrompterSettings {
@@ -18,5 +19,6 @@ export interface PrompterSettings {
   backgroundColor: string
   textColor: string
   fontFamily: string
-  mirrored: boolean
+  mirrorHorizontal: boolean
+  mirrorVertical: boolean
 }

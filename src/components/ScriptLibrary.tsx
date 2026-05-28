@@ -41,7 +41,8 @@ export default function ScriptLibrary({
       backgroundColor: '#000000',
       textColor: '#ffffff',
       fontFamily: 'sans-serif',
-      mirrored: false,
+      mirrorHorizontal: false,
+      mirrorVertical: false,
     }
 
     onSaveScript(newScript)
