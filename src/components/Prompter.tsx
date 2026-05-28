@@ -37,6 +37,18 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
   const lastTimeRef = useRef<number>(0)
   const hideControlsTimeoutRef = useRef<number>()
 
+  const getContrastColor = (hexColor: string) => {
+    const hex = hexColor.replace('#', '')
+    const r = parseInt(hex.substr(0, 2), 16)
+    const g = parseInt(hex.substr(2, 2), 16)
+    const b = parseInt(hex.substr(4, 2), 16)
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000
+    return brightness > 128 ? '#000000' : '#ffffff'
+  }
+
+  const controlsColor = getContrastColor(backgroundColor)
+  const isDarkBackground = controlsColor === '#ffffff'
+
   useEffect(() => {
     if (isPlaying) {
       lastTimeRef.current = performance.now()
@@ -178,11 +190,22 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
       </div>
 
       {showControls && (
-        <div className="absolute inset-x-0 top-0 bg-gradient-to-b from-black/80 to-transparent p-4 transition-opacity">
-          <div className="flex items-center justify-between max-w-6xl mx-auto">
+        <div 
+          className="absolute inset-x-0 top-0 p-4 transition-opacity"
+          style={{
+            background: isDarkBackground 
+              ? 'linear-gradient(to bottom, rgba(0,0,0,0.8), transparent)'
+              : 'linear-gradient(to bottom, rgba(255,255,255,0.8), transparent)'
+          }}
+        >
+          <div className="flex items-center justify-between max-w-6xl mx-auto" style={{ color: controlsColor }}>
             <button
               onClick={onBack}
-              className="p-3 bg-gray-800/80 hover:bg-gray-700 rounded-full transition-colors"
+              className="p-3 rounded-full transition-colors"
+              style={{
+                backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
+                color: controlsColor
+              }}
             >
               <ArrowLeft size={24} />
             </button>
@@ -195,13 +218,21 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
                   }
                   setIsEditing(!isEditing)
                 }}
-                className="p-3 bg-gray-800/80 hover:bg-gray-700 rounded-full transition-colors"
+                className="p-3 rounded-full transition-colors"
+                style={{
+                  backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
+                  color: controlsColor
+                }}
               >
                 {isEditing ? <Save size={24} /> : <Edit3 size={24} />}
               </button>
               <button
                 onClick={() => setShowSettings(!showSettings)}
-                className="p-3 bg-gray-800/80 hover:bg-gray-700 rounded-full transition-colors"
+                className="p-3 rounded-full transition-colors"
+                style={{
+                  backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
+                  color: controlsColor
+                }}
               >
                 <Settings size={24} />
               </button>
@@ -211,24 +242,43 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
       )}
 
       {showControls && !isEditing && (
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity">
-          <div className="max-w-6xl mx-auto">
+        <div 
+          className="absolute inset-x-0 bottom-0 p-4 transition-opacity"
+          style={{
+            background: isDarkBackground 
+              ? 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)'
+              : 'linear-gradient(to top, rgba(255,255,255,0.8), transparent)'
+          }}
+        >
+          <div className="max-w-6xl mx-auto" style={{ color: controlsColor }}>
             <div className="flex items-center justify-center gap-4 mb-4">
               <button
                 onClick={resetScroll}
-                className="p-4 bg-gray-800/80 hover:bg-gray-700 rounded-full transition-colors"
+                className="p-4 rounded-full transition-colors"
+                style={{
+                  backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
+                  color: controlsColor
+                }}
               >
                 <RotateCcw size={24} />
               </button>
               <button
                 onClick={() => setIsPlaying(!isPlaying)}
-                className="p-6 bg-blue-600 hover:bg-blue-700 rounded-full transition-colors"
+                className="p-6 rounded-full transition-colors"
+                style={{
+                  backgroundColor: isDarkBackground ? 'rgb(37,99,235)' : 'rgb(59,130,246)',
+                  color: '#ffffff'
+                }}
               >
                 {isPlaying ? <Pause size={32} /> : <Play size={32} />}
               </button>
               <button
                 onClick={handleSaveAndExit}
-                className="p-4 bg-green-600 hover:bg-green-700 rounded-full transition-colors"
+                className="p-4 rounded-full transition-colors"
+                style={{
+                  backgroundColor: isDarkBackground ? 'rgb(22,163,74)' : 'rgb(34,197,94)',
+                  color: '#ffffff'
+                }}
               >
                 <Save size={24} />
               </button>
@@ -237,36 +287,55 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
             <div className="flex items-center justify-center gap-4">
               <button
                 onClick={() => setScrollSpeed(Math.max(scrollSpeed - 10, 10))}
-                className="p-3 bg-gray-800/80 hover:bg-gray-700 rounded-full transition-colors"
+                className="p-3 rounded-full transition-colors"
+                style={{
+                  backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
+                  color: controlsColor
+                }}
               >
                 <Minus size={20} />
               </button>
               <div className="text-center min-w-[120px]">
-                <div className="text-sm text-gray-400">Speed</div>
+                <div className="text-sm opacity-70">Speed</div>
                 <div className="text-xl font-semibold">{scrollSpeed}</div>
               </div>
               <button
                 onClick={() => setScrollSpeed(Math.min(scrollSpeed + 10, 300))}
-                className="p-3 bg-gray-800/80 hover:bg-gray-700 rounded-full transition-colors"
+                className="p-3 rounded-full transition-colors"
+                style={{
+                  backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
+                  color: controlsColor
+                }}
               >
                 <Plus size={20} />
               </button>
 
-              <div className="w-px h-12 bg-gray-600 mx-2" />
+              <div 
+                className="w-px h-12 mx-2" 
+                style={{ backgroundColor: isDarkBackground ? 'rgba(75,85,99,0.8)' : 'rgba(156,163,175,0.8)' }}
+              />
 
               <button
                 onClick={() => setFontSize(Math.max(fontSize - 4, 12))}
-                className="p-3 bg-gray-800/80 hover:bg-gray-700 rounded-full transition-colors"
+                className="p-3 rounded-full transition-colors"
+                style={{
+                  backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
+                  color: controlsColor
+                }}
               >
                 <Minus size={20} />
               </button>
               <div className="text-center min-w-[120px]">
-                <div className="text-sm text-gray-400">Font Size</div>
+                <div className="text-sm opacity-70">Font Size</div>
                 <div className="text-xl font-semibold">{fontSize}px</div>
               </div>
               <button
                 onClick={() => setFontSize(Math.min(fontSize + 4, 72))}
-                className="p-3 bg-gray-800/80 hover:bg-gray-700 rounded-full transition-colors"
+                className="p-3 rounded-full transition-colors"
+                style={{
+                  backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
+                  color: controlsColor
+                }}
               >
                 <Plus size={20} />
               </button>
