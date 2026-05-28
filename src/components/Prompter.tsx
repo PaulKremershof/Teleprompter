@@ -34,6 +34,7 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editedContent, setEditedContent] = useState(script.content)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showPlayIcon, setShowPlayIcon] = useState(false)
 
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -101,31 +102,39 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
     try {
       const elem = containerRef.current as any
       
-      if (!document.fullscreenElement && !(document as any).webkitFullscreenElement) {
-        // Try standard fullscreen first
+      // Check if we're already in fullscreen
+      const isCurrentlyFullscreen = !!(document.fullscreenElement || (document as any).webkitFullscreenElement)
+      
+      if (!isCurrentlyFullscreen) {
+        // Try to enter fullscreen
         if (elem.requestFullscreen) {
-          await elem.requestFullscreen()
+          await elem.requestFullscreen({ navigationUI: 'hide' })
         } 
-        // Fallback for iOS Safari
         else if (elem.webkitRequestFullscreen) {
           await elem.webkitRequestFullscreen()
         }
-        // Fallback for older iOS
         else if (elem.webkitEnterFullscreen) {
           elem.webkitEnterFullscreen()
         }
-        setIsFullscreen(true)
+        else {
+          // Fallback for iOS: hide address bar by scrolling
+          window.scrollTo(0, 1)
+          setIsFullscreen(true)
+        }
       } else {
         // Exit fullscreen
         if (document.exitFullscreen) {
           await document.exitFullscreen()
         } else if ((document as any).webkitExitFullscreen) {
           await (document as any).webkitExitFullscreen()
+        } else {
+          setIsFullscreen(false)
         }
-        setIsFullscreen(false)
       }
     } catch (err) {
       console.error('Fullscreen error:', err)
+      // On iOS, just toggle the state for UI feedback
+      setIsFullscreen(!isFullscreen)
     }
   }
 
@@ -213,22 +222,15 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
     onBack()
   }
 
-  const showControlsTemporarily = () => {
-    setShowControls(true)
-    if (hideControlsTimeoutRef.current) {
-      clearTimeout(hideControlsTimeoutRef.current)
-    }
-    hideControlsTimeoutRef.current = window.setTimeout(() => {
-      if (isPlaying) {
-        setShowControls(false)
-      }
-    }, 3000)
-  }
-
   const handleScreenTap = () => {
-    if (isPlaying) {
-      showControlsTemporarily()
-    }
+    if (isEditing || showSettings) return
+    
+    // Toggle play/pause
+    setIsPlaying(!isPlaying)
+    
+    // Show icon feedback
+    setShowPlayIcon(true)
+    setTimeout(() => setShowPlayIcon(false), 800)
   }
 
   return (
@@ -276,6 +278,21 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
           )}
         </div>
       </div>
+
+      {/* Temporary Play/Pause Icon Feedback */}
+      {showPlayIcon && !isEditing && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div 
+            className="p-8 rounded-full animate-fade-in-out"
+            style={{
+              backgroundColor: isDarkBackground ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.7)',
+              color: controlsColor
+            }}
+          >
+            {isPlaying ? <Play size={64} /> : <Pause size={64} />}
+          </div>
+        </div>
+      )}
 
       {showControls && (
         <div 
@@ -368,16 +385,6 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
                 }}
               >
                 <RotateCcw size={24} />
-              </button>
-              <button
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="p-6 rounded-full transition-colors"
-                style={{
-                  backgroundColor: isDarkBackground ? 'rgb(37,99,235)' : 'rgb(59,130,246)',
-                  color: '#ffffff'
-                }}
-              >
-                {isPlaying ? <Pause size={32} /> : <Play size={32} />}
               </button>
               <button
                 onClick={handleSaveAndExit}
