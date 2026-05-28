@@ -69,15 +69,28 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
         animationFrameRef.current = requestAnimationFrame(animate)
       }
       animationFrameRef.current = requestAnimationFrame(animate)
+      
+      // Hide controls after 2 seconds when playing starts
+      hideControlsTimeoutRef.current = window.setTimeout(() => {
+        setShowControls(false)
+      }, 2000)
     } else {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current)
+      }
+      // Show controls when paused
+      setShowControls(true)
+      if (hideControlsTimeoutRef.current) {
+        clearTimeout(hideControlsTimeoutRef.current)
       }
     }
 
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current)
+      }
+      if (hideControlsTimeoutRef.current) {
+        clearTimeout(hideControlsTimeoutRef.current)
       }
     }
   }, [isPlaying, scrollSpeed])
@@ -86,11 +99,29 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
     if (!containerRef.current) return
 
     try {
-      if (!document.fullscreenElement) {
-        await containerRef.current.requestFullscreen()
+      const elem = containerRef.current as any
+      
+      if (!document.fullscreenElement && !(document as any).webkitFullscreenElement) {
+        // Try standard fullscreen first
+        if (elem.requestFullscreen) {
+          await elem.requestFullscreen()
+        } 
+        // Fallback for iOS Safari
+        else if (elem.webkitRequestFullscreen) {
+          await elem.webkitRequestFullscreen()
+        }
+        // Fallback for older iOS
+        else if (elem.webkitEnterFullscreen) {
+          elem.webkitEnterFullscreen()
+        }
         setIsFullscreen(true)
       } else {
-        await document.exitFullscreen()
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+          await document.exitFullscreen()
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen()
+        }
         setIsFullscreen(false)
       }
     } catch (err) {
@@ -100,11 +131,15 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement)
+      setIsFullscreen(!!document.fullscreenElement || !!(document as any).webkitFullscreenElement)
     }
 
     document.addEventListener('fullscreenchange', handleFullscreenChange)
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange)
+    }
   }, [])
 
   useEffect(() => {
@@ -323,7 +358,7 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
           }}
         >
           <div className="max-w-6xl mx-auto" style={{ color: controlsColor }}>
-            <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="flex items-center justify-center gap-4">
               <button
                 onClick={resetScroll}
                 className="p-4 rounded-full transition-colors"
@@ -355,67 +390,6 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
                 <Save size={24} />
               </button>
             </div>
-
-            <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setScrollSpeed(Math.max(scrollSpeed - 10, 10))}
-                  className="p-3 rounded-full transition-colors"
-                  style={{
-                    backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
-                    color: controlsColor
-                  }}
-                >
-                  <Minus size={20} />
-                </button>
-                <div className="text-center min-w-[100px]">
-                  <div className="text-xs md:text-sm opacity-70">Speed</div>
-                  <div className="text-lg md:text-xl font-semibold">{scrollSpeed}</div>
-                </div>
-                <button
-                  onClick={() => setScrollSpeed(Math.min(scrollSpeed + 10, 300))}
-                  className="p-3 rounded-full transition-colors"
-                  style={{
-                    backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
-                    color: controlsColor
-                  }}
-                >
-                  <Plus size={20} />
-                </button>
-              </div>
-
-              <div 
-                className="hidden md:block w-px h-12 mx-2" 
-                style={{ backgroundColor: isDarkBackground ? 'rgba(75,85,99,0.8)' : 'rgba(156,163,175,0.8)' }}
-              />
-
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setFontSize(Math.max(fontSize - 4, 12))}
-                  className="p-3 rounded-full transition-colors"
-                  style={{
-                    backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
-                    color: controlsColor
-                  }}
-                >
-                  <Minus size={20} />
-                </button>
-                <div className="text-center min-w-[100px]">
-                  <div className="text-xs md:text-sm opacity-70">Font Size</div>
-                  <div className="text-lg md:text-xl font-semibold">{fontSize}px</div>
-                </div>
-                <button
-                  onClick={() => setFontSize(Math.min(fontSize + 4, 72))}
-                  className="p-3 rounded-full transition-colors"
-                  style={{
-                    backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
-                    color: controlsColor
-                  }}
-                >
-                  <Plus size={20} />
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       )}
@@ -426,6 +400,60 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
             <h2 className="text-2xl font-bold mb-6">Settings</h2>
 
             <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Scroll Speed: {scrollSpeed}</label>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setScrollSpeed(Math.max(scrollSpeed - 10, 10))}
+                    className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+                  >
+                    <Minus size={20} />
+                  </button>
+                  <input
+                    type="range"
+                    min="10"
+                    max="300"
+                    step="10"
+                    value={scrollSpeed}
+                    onChange={(e) => setScrollSpeed(Number(e.target.value))}
+                    className="flex-1"
+                  />
+                  <button
+                    onClick={() => setScrollSpeed(Math.min(scrollSpeed + 10, 300))}
+                    className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+                  >
+                    <Plus size={20} />
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Font Size: {fontSize}px</label>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setFontSize(Math.max(fontSize - 4, 12))}
+                    className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+                  >
+                    <Minus size={20} />
+                  </button>
+                  <input
+                    type="range"
+                    min="12"
+                    max="72"
+                    step="4"
+                    value={fontSize}
+                    onChange={(e) => setFontSize(Number(e.target.value))}
+                    className="flex-1"
+                  />
+                  <button
+                    onClick={() => setFontSize(Math.min(fontSize + 4, 72))}
+                    className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+                  >
+                    <Plus size={20} />
+                  </button>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm text-gray-400 mb-2">Font Family</label>
                 <select
