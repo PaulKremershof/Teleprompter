@@ -94,9 +94,28 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
       }
     }
 
+    const handleOrientationChange = () => {
+      setShowControls(true)
+      if (hideControlsTimeoutRef.current) {
+        clearTimeout(hideControlsTimeoutRef.current)
+      }
+      if (isPlaying) {
+        hideControlsTimeoutRef.current = window.setTimeout(() => {
+          setShowControls(false)
+        }, 3000)
+      }
+    }
+
     window.addEventListener('keydown', handleKeyPress)
-    return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [isEditing])
+    window.addEventListener('orientationchange', handleOrientationChange)
+    window.addEventListener('resize', handleOrientationChange)
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress)
+      window.removeEventListener('orientationchange', handleOrientationChange)
+      window.removeEventListener('resize', handleOrientationChange)
+    }
+  }, [isEditing, isPlaying])
 
   const resetScroll = () => {
     if (scrollContainerRef.current) {
@@ -284,61 +303,65 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
               </button>
             </div>
 
-            <div className="flex items-center justify-center gap-4">
-              <button
-                onClick={() => setScrollSpeed(Math.max(scrollSpeed - 10, 10))}
-                className="p-3 rounded-full transition-colors"
-                style={{
-                  backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
-                  color: controlsColor
-                }}
-              >
-                <Minus size={20} />
-              </button>
-              <div className="text-center min-w-[120px]">
-                <div className="text-sm opacity-70">Speed</div>
-                <div className="text-xl font-semibold">{scrollSpeed}</div>
+            <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setScrollSpeed(Math.max(scrollSpeed - 10, 10))}
+                  className="p-3 rounded-full transition-colors"
+                  style={{
+                    backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
+                    color: controlsColor
+                  }}
+                >
+                  <Minus size={20} />
+                </button>
+                <div className="text-center min-w-[100px]">
+                  <div className="text-xs md:text-sm opacity-70">Speed</div>
+                  <div className="text-lg md:text-xl font-semibold">{scrollSpeed}</div>
+                </div>
+                <button
+                  onClick={() => setScrollSpeed(Math.min(scrollSpeed + 10, 300))}
+                  className="p-3 rounded-full transition-colors"
+                  style={{
+                    backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
+                    color: controlsColor
+                  }}
+                >
+                  <Plus size={20} />
+                </button>
               </div>
-              <button
-                onClick={() => setScrollSpeed(Math.min(scrollSpeed + 10, 300))}
-                className="p-3 rounded-full transition-colors"
-                style={{
-                  backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
-                  color: controlsColor
-                }}
-              >
-                <Plus size={20} />
-              </button>
 
               <div 
-                className="w-px h-12 mx-2" 
+                className="hidden md:block w-px h-12 mx-2" 
                 style={{ backgroundColor: isDarkBackground ? 'rgba(75,85,99,0.8)' : 'rgba(156,163,175,0.8)' }}
               />
 
-              <button
-                onClick={() => setFontSize(Math.max(fontSize - 4, 12))}
-                className="p-3 rounded-full transition-colors"
-                style={{
-                  backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
-                  color: controlsColor
-                }}
-              >
-                <Minus size={20} />
-              </button>
-              <div className="text-center min-w-[120px]">
-                <div className="text-sm opacity-70">Font Size</div>
-                <div className="text-xl font-semibold">{fontSize}px</div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setFontSize(Math.max(fontSize - 4, 12))}
+                  className="p-3 rounded-full transition-colors"
+                  style={{
+                    backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
+                    color: controlsColor
+                  }}
+                >
+                  <Minus size={20} />
+                </button>
+                <div className="text-center min-w-[100px]">
+                  <div className="text-xs md:text-sm opacity-70">Font Size</div>
+                  <div className="text-lg md:text-xl font-semibold">{fontSize}px</div>
+                </div>
+                <button
+                  onClick={() => setFontSize(Math.min(fontSize + 4, 72))}
+                  className="p-3 rounded-full transition-colors"
+                  style={{
+                    backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
+                    color: controlsColor
+                  }}
+                >
+                  <Plus size={20} />
+                </button>
               </div>
-              <button
-                onClick={() => setFontSize(Math.min(fontSize + 4, 72))}
-                className="p-3 rounded-full transition-colors"
-                style={{
-                  backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
-                  color: controlsColor
-                }}
-              >
-                <Plus size={20} />
-              </button>
             </div>
           </div>
         </div>
