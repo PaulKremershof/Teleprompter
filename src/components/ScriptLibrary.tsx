@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, FileText, Trash2, Edit2, Search } from 'lucide-react'
+import { Plus, FileText, Trash2, Search } from 'lucide-react'
 import { Script } from '../types'
 import { generateId } from '../utils/storage'
 
