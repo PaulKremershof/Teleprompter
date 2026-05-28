@@ -291,7 +291,15 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
                 {isFullscreen ? <Minimize size={24} /> : <Maximize size={24} />}
               </button>
               <button
-                onClick={() => setShowSettings(!showSettings)}
+                onClick={() => {
+                  setShowSettings(!showSettings)
+                  if (!showSettings) {
+                    setShowControls(true)
+                    if (hideControlsTimeoutRef.current) {
+                      clearTimeout(hideControlsTimeoutRef.current)
+                    }
+                  }
+                }}
                 className="p-3 rounded-full transition-colors"
                 style={{
                   backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
@@ -492,6 +500,10 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
               onClick={() => {
                 handleSave()
                 setShowSettings(false)
+                setShowControls(true)
+                if (hideControlsTimeoutRef.current) {
+                  clearTimeout(hideControlsTimeoutRef.current)
+                }
               }}
               className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-3 font-semibold transition-colors"
             >
