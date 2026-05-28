@@ -9,6 +9,8 @@ import {
   RotateCcw,
   Edit3,
   Save,
+  Maximize,
+  Minimize,
 } from 'lucide-react'
 import { Script } from '../types'
 
@@ -31,8 +33,10 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
   const [mirrorVertical, setMirrorVertical] = useState(script.mirrorVertical)
   const [isEditing, setIsEditing] = useState(false)
   const [editedContent, setEditedContent] = useState(script.content)
+  const [isFullscreen, setIsFullscreen] = useState(false)
 
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const animationFrameRef = useRef<number>()
   const lastTimeRef = useRef<number>(0)
   const hideControlsTimeoutRef = useRef<number>()
@@ -78,6 +82,31 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
     }
   }, [isPlaying, scrollSpeed])
 
+  const toggleFullscreen = async () => {
+    if (!containerRef.current) return
+
+    try {
+      if (!document.fullscreenElement) {
+        await containerRef.current.requestFullscreen()
+        setIsFullscreen(true)
+      } else {
+        await document.exitFullscreen()
+        setIsFullscreen(false)
+      }
+    } catch (err) {
+      console.error('Fullscreen error:', err)
+    }
+  }
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  }, [])
+
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.code === 'Space' && !isEditing) {
@@ -91,6 +120,10 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
       if (e.code === 'ArrowDown' && !isEditing) {
         e.preventDefault()
         setScrollSpeed((prev) => Math.max(prev - 10, 10))
+      }
+      if (e.code === 'KeyF' && !isEditing) {
+        e.preventDefault()
+        toggleFullscreen()
       }
     }
 
@@ -165,6 +198,7 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
 
   return (
     <div
+      ref={containerRef}
       className="w-full h-full relative overflow-hidden"
       style={{ backgroundColor }}
       onClick={handleScreenTap}
@@ -244,6 +278,17 @@ export default function Prompter({ script, onBack, onSave }: PrompterProps) {
                 }}
               >
                 {isEditing ? <Save size={24} /> : <Edit3 size={24} />}
+              </button>
+              <button
+                onClick={toggleFullscreen}
+                className="p-3 rounded-full transition-colors"
+                style={{
+                  backgroundColor: isDarkBackground ? 'rgba(55,65,81,0.8)' : 'rgba(229,231,235,0.8)',
+                  color: controlsColor
+                }}
+                title={isFullscreen ? 'Vollbild verlassen (F)' : 'Vollbild (F)'}
+              >
+                {isFullscreen ? <Minimize size={24} /> : <Maximize size={24} />}
               </button>
               <button
                 onClick={() => setShowSettings(!showSettings)}
